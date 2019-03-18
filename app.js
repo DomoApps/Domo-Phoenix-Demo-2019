@@ -11,18 +11,20 @@ function chartIt(data, customOptions, chartType) {
   // Set your "Chart Options": https://domoapps.github.io/domo-phoenix/#/domo-phoenix/api
   var options = {
     width: 650,
-    height: 375
+    height: 400
   };
+  // Merge option overrides into default options
   options = Object.assign(options, customOptions);
 
   // Create the Phoenix Chart
   var chart = new DomoPhoenix.Chart(chartType, data, options);
 
+  chart._instance.addEventListener("drill", handleDrill);
+  // ADDED: Add highlight event handler to deep Phoenix chart instance
+  chart._instance.addEventListener("cardbus", handleHighlight);
+
   // Append the canvas element to your app
   document.getElementById("phoenix-chart").appendChild(chart.canvas);
-
-  chart._instance.addEventListener("drill", handleDrill);
-  chart._instance.addEventListener("cardbus", handleHighlight);
 
   // Render the chart when you're ready for the user to see it
   chart.render();
@@ -77,24 +79,10 @@ var sampleData = {
   ]
 };
 
-// Customize some chart properties
-var chartProperties = {
-  // Choose a random palette
-  colors: currentPalette,
-  // transparentBackground: true,
-  // Specify some custom properties (see https://domoapps.github.io/domo-phoenix/#/domo-phoenix/properties)
-  properties: {
-    total_sort: "Descending",
-    hover_text:
-      "%_VALUE" +
-      (currentPriority ? " (filtered to " + currentPriority + ")" : "")
-  }
-};
-
 // Store a reference to the chart object
-var theChart = chartIt(sampleData, chartProperties);
+var theChart = chartIt(sampleData);
 
-// Helper function for randomizing data
+// Helper function for randomizing data and variable for tracking currently selected priority
 var currentPriority;
 function getDataSliceForPriority(priority) {
   var newRows = sampleData.rows;
@@ -116,7 +104,7 @@ function updateChart(data, customOptions) {
   data = data || getDataSliceForPriority(currentPriority);
   customOptions = Object.assign(
     (chartProperties = {
-      colors: currentPalette,
+      colors: palettes[currentPalette],
       transparentBackground: transparent
     }),
     customOptions || {}
@@ -124,13 +112,13 @@ function updateChart(data, customOptions) {
   theChart.update(data, customOptions);
 }
 
-// Helper function for resetting chart if need be.
+// Helper function for resetting chart if need be (and preserving selected properties)
 // (Same arguments as chartIt since we'll just pass them through)
 function resetChart(data, customOptions, chartType) {
   data = data || getDataSliceForPriority(currentPriority);
   customOptions = Object.assign(
     (chartProperties = {
-      colors: currentPalette,
+      colors: palettes[currentPalette],
       transparentBackground: transparent
     }),
     customOptions || {}
@@ -139,15 +127,18 @@ function resetChart(data, customOptions, chartType) {
   theChart = chartIt(data, customOptions, chartType);
 }
 
-// Helper function to attach to button click
+// Click handler for filtering charts
+// Make sure chart is fully reset to bar type if removing all filters from inside 'Critical' drill
 function filterChart(priority) {
-  if (!priority && wasCritical) {
+  if (wasCritical) {
+    wasCritical = false;
     var currentOptions = {
-      colors: currentPalette,
+      colors: palettes[currentPalette],
       transparentBackground: transparent
     };
-    resetChart(sampleData, currentOptions);
-    wasCritical = false;
+    var newData = getDataSliceForPriority(priority);
+    var chartType = wasCritical ? DomoPhoenix.CHART_TYPE.PIE : undefined;
+    resetChart(newData, currentOptions, chartType);
   } else {
     currentPriority = priority;
     var newData = getDataSliceForPriority(priority);
@@ -155,7 +146,7 @@ function filterChart(priority) {
   }
 }
 
-// Helper function for transparent background
+// Helper function for transparent background and variable for tracking whether we're currently transparent or not
 var transparent = false;
 function toggleTransparentBackground() {
   transparent = !transparent;
@@ -165,20 +156,20 @@ function toggleTransparentBackground() {
     document.querySelector("body").style.backgroundColor = "inherit";
   }
   chartProperties = { transparentBackground: transparent };
-  var chartType = wasCritical ? DomoPhoenix.CHART_TYPE.PIE : undefined;
-  resetChart(undefined, chartProperties, chartType);
+  resetChart(undefined, chartProperties);
 }
 
-// Add some color palettes
+// Helper function for color palettes and variable for tracking selected palette
 var palettes = [
+  ["#80AFD3", "#ACD47D", "#679B47", "#F0AF66", "#D45F34"],
   ["#002159", "#03449E", "#0967D2", "#47A3F3", "#BAE3FF"],
   ["#333", "#666", "#999", "#CCC", "#EEE"]
 ];
-var currentPalette;
-function randomizeColorPalette() {
-  // Choose a random palette
-  currentPalette = palettes[Math.floor(Math.random() * palettes.length)];
-  chartProperties = { colors: currentPalette };
+var currentPalette = 0;
+function switchColorPalette() {
+  currentPalette += 1;
+  currentPalette %= palettes.length;
+  chartProperties = { colors: palettes[currentPalette] };
   updateChart(undefined, chartProperties);
 }
 
@@ -191,9 +182,10 @@ function handleDrill(event) {
   });
 
   if (priorityFilter && priorityFilter.values.length) {
+    // CHANGED: When you're using a 'cardbus' event handler, filters change to a 'NOT_IN' condition, so we have to invert this check
     var isCritical = !priorityFilter.values.includes("Critical");
     if (isCritical) {
-      var data = getDataSliceForPriority(currentPriority);
+      var data = getDataSliceForPriority(priorityFilter.values[0]);
       resetChart(data, {}, DomoPhoenix.CHART_TYPE.PIE);
 
       wasCritical = true;
@@ -201,7 +193,7 @@ function handleDrill(event) {
   }
 }
 
-// Helper function for adding custom drill event handlers
+// ADDED: Helper function for adding custom drill event handlers
 function handleHighlight(event) {
   var highlightInfo = event.highlight || {};
   var highlightFilters = highlightInfo.filters || [];
