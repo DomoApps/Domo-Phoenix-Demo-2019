@@ -5,16 +5,19 @@
   <body>
     <!-- Add buttons and attach click handlers to update data -->
     <div class="buttons-row">
-      <button onclick="updateChart('Low')">Low</button>
-      <button onclick="updateChart('Medium')">Medium</button>
-      <button onclick="updateChart('High')">High</button>
-      <button onclick="updateChart('Critical')">Critical</button>
-      <button onclick="updateChart('Not Specified')">Not Specified</button>
-      <button onclick="updateChart()">All</button>
+      <button onclick="filterChart('Low')">Low</button>
+      <button onclick="filterChart('Medium')">Medium</button>
+      <button onclick="filterChart('High')">High</button>
+      <button onclick="filterChart('Critical')">Critical</button>
+      <button onclick="filterChart('Not Specified')">Not Specified</button>
+      <button onclick="filterChart()">All</button>
     </div>
     <div class="buttons-row">
       <button onclick="toggleTransparentBackground()">
         Toggle Transparent Background
+      </button>
+      <button onclick="switchColorPalette()">
+        Switch Color Palette
       </button>
     </div>
     <div id="phoenix-chart"></div>
