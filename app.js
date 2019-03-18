@@ -1,4 +1,4 @@
-// STEP THREE: Theming and chart properties
+// STEP FOUR: Custom drill event handlers
 
 // For more on how to use Phoenix view the documentation at:
 // https://domoapps.github.io/domo-phoenix/
@@ -20,6 +20,8 @@ function chartIt(data, customOptions) {
 
   // Append the canvas element to your app
   document.getElementById("phoenix-chart").appendChild(chart.canvas);
+
+  chart._instance.addEventListener("drill", handleDrill);
 
   // Render the chart when you're ready for the user to see it
   chart.render();
@@ -150,4 +152,16 @@ function toggleTransparentBackground() {
   };
   var data = getDataSliceForPriority(currentPriority);
   theChart = chartIt(data, chartProperties);
+}
+
+// Helper function for adding custom drill event handlers
+function handleDrill(event) {
+  var drillInfo = event.drillInfo;
+  var priorityFilter = drillInfo.filters.find(function(filter) {
+    return filter.column === "Order Priority";
+  });
+
+  if (priorityFilter && priorityFilter.values.length) {
+    updateChart(priorityFilter.values[0]);
+  }
 }
