@@ -1,4 +1,4 @@
-// STEP FOUR: Custom drill event handlers
+// STEP FIVE: Custom highlight event handlers
 
 // For more on how to use Phoenix view the documentation at:
 // https://domoapps.github.io/domo-phoenix/
@@ -11,7 +11,7 @@ function chartIt(data, customOptions) {
   // Set your "Chart Options": https://domoapps.github.io/domo-phoenix/#/domo-phoenix/api
   var options = {
     width: 650,
-    height: 400
+    height: 375
   };
   options = Object.assign(options, customOptions);
 
@@ -22,6 +22,7 @@ function chartIt(data, customOptions) {
   document.getElementById("phoenix-chart").appendChild(chart.canvas);
 
   chart._instance.addEventListener("drill", handleDrill);
+  chart._instance.addEventListener("cardbus", handleHighlight);
 
   // Render the chart when you're ready for the user to see it
   chart.render();
@@ -163,5 +164,22 @@ function handleDrill(event) {
 
   if (priorityFilter && priorityFilter.values.length) {
     updateChart(priorityFilter.values[0]);
+  }
+}
+
+// Helper function for adding custom drill event handlers
+function handleHighlight(event) {
+  var highlightInfo = event.highlight || {};
+  var highlightFilters = highlightInfo.filters || [];
+  var priorityFilter = highlightFilters.find(function(filter) {
+    return filter.column === "Order Priority";
+  });
+
+  if (priorityFilter && priorityFilter.values.length) {
+    if (priorityFilter.values[0] === "Critical") {
+      document.getElementById("warning-banner").style.display = "flex";
+    }
+  } else {
+    document.getElementById("warning-banner").style.display = "none";
   }
 }
