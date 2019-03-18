@@ -4,9 +4,9 @@
 // https://domoapps.github.io/domo-phoenix/
 
 // Call this with your data to render a PhoenixChart
-function chartIt(data, customOptions) {
+function chartIt(data, customOptions, chartType) {
   // Set a chart type using the correct enum: https://domoapps.github.io/domo-phoenix/#/domo-phoenix/properties
-  var chartType = DomoPhoenix.CHART_TYPE.BAR;
+  var chartType = chartType || DomoPhoenix.CHART_TYPE.BAR;
 
   // Set your "Chart Options": https://domoapps.github.io/domo-phoenix/#/domo-phoenix/api
   var options = {
@@ -77,15 +77,10 @@ var sampleData = {
   ]
 };
 
-// NEW CODE
-var palettes = [
-  ["#002159", "#03449E", "#0967D2", "#47A3F3", "#BAE3FF"],
-  ["#333", "#666", "#999", "#CCC", "#EEE"]
-];
 // Customize some chart properties
 var chartProperties = {
   // Choose a random palette
-  colors: palettes[Math.floor(Math.random() * palettes.length)],
+  colors: currentPalette,
   // transparentBackground: true,
   // Specify some custom properties (see https://domoapps.github.io/domo-phoenix/#/domo-phoenix/properties)
   properties: {
@@ -116,46 +111,79 @@ function getDataSliceForPriority(priority) {
   };
 }
 
+// Helper function for updating chart and preserving selected properties
+function updateChart(data, customOptions) {
+  data = data || getDataSliceForPriority(currentPriority);
+  customOptions = Object.assign(
+    (chartProperties = {
+      colors: currentPalette,
+      transparentBackground: transparent
+    }),
+    customOptions || {}
+  );
+  theChart.update(data, customOptions);
+}
+
+// Helper function for resetting chart if need be.
+// (Same arguments as chartIt since we'll just pass them through)
+function resetChart(data, customOptions, chartType) {
+  data = data || getDataSliceForPriority(currentPriority);
+  customOptions = Object.assign(
+    (chartProperties = {
+      colors: currentPalette,
+      transparentBackground: transparent
+    }),
+    customOptions || {}
+  );
+  document.getElementById("phoenix-chart").innerHTML = "";
+  theChart = chartIt(data, customOptions, chartType);
+}
+
 // Helper function to attach to button click
-function updateChart(priority) {
-  currentPriority = priority;
-  chartProperties = {
-    // Choose a random palette
-    colors: palettes[Math.floor(Math.random() * palettes.length)],
-    // Specify some custom properties (see https://domoapps.github.io/domo-phoenix/#/domo-phoenix/properties)
-    properties: {
-      total_sort: "Descending",
-      hover_text:
-        "%_VALUE" +
-        (currentPriority ? " (filtered to " + currentPriority + ")" : "")
-    }
-  };
-  var newData = getDataSliceForPriority(priority);
-  theChart.update(newData, chartProperties);
+function filterChart(priority) {
+  if (!priority && wasCritical) {
+    var currentOptions = {
+      colors: currentPalette,
+      transparentBackground: transparent
+    };
+    resetChart(sampleData, currentOptions);
+    wasCritical = false;
+  } else {
+    currentPriority = priority;
+    var newData = getDataSliceForPriority(priority);
+    updateChart(newData);
+  }
 }
 
 // Helper function for transparent background
 var transparent = false;
 function toggleTransparentBackground() {
-  document.getElementById("phoenix-chart").innerHTML = "";
   transparent = !transparent;
-  chartProperties = {
-    // Choose a random palette
-    colors: palettes[Math.floor(Math.random() * palettes.length)],
-    transparentBackground: transparent,
-    // Specify some custom properties (see https://domoapps.github.io/domo-phoenix/#/domo-phoenix/properties)
-    properties: {
-      total_sort: "Descending",
-      hover_text:
-        "%_VALUE" +
-        (currentPriority ? " (filtered to " + currentPriority + ")" : "")
-    }
-  };
-  var data = getDataSliceForPriority(currentPriority);
-  theChart = chartIt(data, chartProperties);
+  if (transparent) {
+    document.querySelector("body").style.backgroundColor = "#9ce";
+  } else {
+    document.querySelector("body").style.backgroundColor = "inherit";
+  }
+  chartProperties = { transparentBackground: transparent };
+  var chartType = wasCritical ? DomoPhoenix.CHART_TYPE.PIE : undefined;
+  resetChart(undefined, chartProperties, chartType);
+}
+
+// Add some color palettes
+var palettes = [
+  ["#002159", "#03449E", "#0967D2", "#47A3F3", "#BAE3FF"],
+  ["#333", "#666", "#999", "#CCC", "#EEE"]
+];
+var currentPalette;
+function randomizeColorPalette() {
+  // Choose a random palette
+  currentPalette = palettes[Math.floor(Math.random() * palettes.length)];
+  chartProperties = { colors: currentPalette };
+  updateChart(undefined, chartProperties);
 }
 
 // Helper function for adding custom drill event handlers
+var wasCritical;
 function handleDrill(event) {
   var drillInfo = event.drillInfo;
   var priorityFilter = drillInfo.filters.find(function(filter) {
@@ -163,7 +191,13 @@ function handleDrill(event) {
   });
 
   if (priorityFilter && priorityFilter.values.length) {
-    updateChart(priorityFilter.values[0]);
+    var isCritical = !priorityFilter.values.includes("Critical");
+    if (isCritical) {
+      var data = getDataSliceForPriority(currentPriority);
+      resetChart(data, {}, DomoPhoenix.CHART_TYPE.PIE);
+
+      wasCritical = true;
+    } else filterChart(priorityFilter.values[0]);
   }
 }
 
