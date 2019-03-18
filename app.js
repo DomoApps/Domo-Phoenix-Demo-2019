@@ -1,4 +1,4 @@
-// STEP THREE: Theming and chart properties
+// STEP THREE: Theming, chart properties, and sizing
 
 // For more on how to use Phoenix view the documentation at:
 // https://domoapps.github.io/domo-phoenix/
@@ -102,7 +102,9 @@ function updateChart(data, customOptions) {
   customOptions = Object.assign(
     (chartProperties = {
       colors: palettes[currentPalette],
-      transparentBackground: transparent
+      transparentBackground: transparent,
+      height: sizes[currentSize].height,
+      width: sizes[currentSize].width
     }),
     customOptions || {}
   );
@@ -117,7 +119,9 @@ function resetChart(data, customOptions, chartType) {
   customOptions = Object.assign(
     (chartProperties = {
       colors: palettes[currentPalette],
-      transparentBackground: transparent
+      transparentBackground: transparent,
+      height: sizes[currentSize].height,
+      width: sizes[currentSize].width
     }),
     customOptions || {}
   );
@@ -157,4 +161,21 @@ function switchColorPalette() {
   currentPalette %= palettes.length;
   chartProperties = { colors: palettes[currentPalette] };
   updateChart(undefined, chartProperties);
+}
+
+// ADDED: Helper function for color palettes and variable for tracking selected palette
+var sizes = [
+  { width: 650, height: 400 },
+  { width: 450, height: 300 },
+  { width: 250, height: 200 }
+];
+var currentSize = 0;
+function switchChartSize() {
+  currentSize += 1;
+  currentSize %= sizes.length;
+  chartProperties = {
+    height: sizes[currentSize].height,
+    width: sizes[currentSize].width
+  };
+  resetChart(undefined, chartProperties);
 }
