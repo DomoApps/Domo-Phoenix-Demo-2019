@@ -1,4 +1,4 @@
-// STEP ONE: Updated CLI and new templates
+// STEP TWO: Updating a chart
 
 // For more on how to use Phoenix view the documentation at:
 // https://domoapps.github.io/domo-phoenix/
@@ -22,6 +22,10 @@ function chartIt(data) {
 
   // Render the chart when you're ready for the user to see it
   chart.render();
+
+  // NEW CODE
+  // Now we return the chart so we can call methods to update it with new data
+  return chart;
 }
 
 // Set this to use the columns in your dataset:
@@ -70,4 +74,28 @@ var sampleData = {
   ]
 };
 
-chartIt(sampleData);
+// NEW CODE
+// Store a reference to the chart object
+var theChart = chartIt(sampleData);
+
+// Helper function for randomizing data
+function getDataSliceForPriority(priority) {
+  var newRows = sampleData.rows;
+  if (priority) {
+    newRows = newRows.filter(function(row) {
+      var keepThisRow = row[0] === priority;
+      return keepThisRow;
+    });
+  }
+
+  return {
+    columns: sampleData.columns,
+    rows: newRows
+  };
+}
+
+// Helper function to attach to button click
+function updateChart(priority) {
+  var newData = getDataSliceForPriority(priority);
+  theChart.update(newData);
+}

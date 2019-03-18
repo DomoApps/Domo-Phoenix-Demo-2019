@@ -3,7 +3,15 @@
     <link rel="stylesheet" href="app.css" />
   </head>
   <body>
-    <h1>Domo-Phoenix-2019</h1>
+    <!-- Add buttons and attach click handlers to update data -->
+    <div class="buttons-row">
+      <button onclick="updateChart('Low')">Low</button>
+      <button onclick="updateChart('Medium')">Medium</button>
+      <button onclick="updateChart('High')">High</button>
+      <button onclick="updateChart('Critical')">Critical</button>
+      <button onclick="updateChart('Not Specified')">Not Specified</button>
+      <button onclick="updateChart()">All</button>
+    </div>
     <div id="phoenix-chart"></div>
     <!-- domo.js optional utils -->
     <script src="domo.js"></script>

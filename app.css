@@ -4,5 +4,11 @@ body {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  font-family: "Open Sans","Helvetica Neue",Arial,Helvetica,sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+.buttons-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
 }
