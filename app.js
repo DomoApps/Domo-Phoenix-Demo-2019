@@ -4,15 +4,18 @@
 // https://domoapps.github.io/domo-phoenix/
 
 // Call this with your data to render a PhoenixChart
-function chartIt(data) {
+// CHANGED: Added two arguments to make updating/resetting chart properties simpler
+function chartIt(data, customOptions, chartType) {
   // Set a chart type using the correct enum: https://domoapps.github.io/domo-phoenix/#/domo-phoenix/properties
-  var chartType = DomoPhoenix.CHART_TYPE.BAR;
+  var chartType = chartType || DomoPhoenix.CHART_TYPE.BAR;
 
   // Set your "Chart Options": https://domoapps.github.io/domo-phoenix/#/domo-phoenix/api
   var options = {
     width: 650,
     height: 400
   };
+  // ADDED: Merge option overrides into default options
+  options = Object.assign(options, customOptions);
 
   // Create the Phoenix Chart
   var chart = new DomoPhoenix.Chart(chartType, data, options);
@@ -23,8 +26,7 @@ function chartIt(data) {
   // Render the chart when you're ready for the user to see it
   chart.render();
 
-  // NEW CODE
-  // Now we return the chart so we can call methods to update it with new data
+  // ADDED: Now we return the chart so we can call methods to update it with new data
   return chart;
 }
 
@@ -74,11 +76,11 @@ var sampleData = {
   ]
 };
 
-// NEW CODE
-// Store a reference to the chart object
+// CHANGED: Store a reference to the chart object
 var theChart = chartIt(sampleData);
 
-// Helper function for randomizing data
+// ADDED: Helper function for randomizing data and variable for tracking currently selected priority
+var currentPriority;
 function getDataSliceForPriority(priority) {
   var newRows = sampleData.rows;
   if (priority) {
@@ -94,8 +96,25 @@ function getDataSliceForPriority(priority) {
   };
 }
 
-// Helper function to attach to button click
-function updateChart(priority) {
+// ADDED: Helper function for updating chart and preserving selected properties
+function updateChart(data, customOptions) {
+  data = data || getDataSliceForPriority(currentPriority);
+  customOptions = customOptions || {};
+  theChart.update(data, customOptions);
+}
+
+// ADDED: Helper function for resetting chart if need be (and preserving selected properties)
+// (Same arguments as chartIt since we'll just pass them through)
+function resetChart(data, customOptions, chartType) {
+  data = data || getDataSliceForPriority(currentPriority);
+  customOptions = customOptions || {};
+  document.getElementById("phoenix-chart").innerHTML = "";
+  theChart = chartIt(data, customOptions, chartType);
+}
+
+// ADDED: Click handler for filtering charts
+function filterChart(priority) {
+  currentPriority = priority;
   var newData = getDataSliceForPriority(priority);
-  theChart.update(newData);
+  updateChart(newData);
 }
