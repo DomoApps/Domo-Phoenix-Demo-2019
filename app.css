@@ -1,14 +1,16 @@
 body {
   margin: 0;
+  padding-top: 24px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: flex-start;
   align-items: center;
   font-family: "Open Sans", "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
 
 .buttons-row {
   width: 100%;
+  padding: 0 0 24px;
   display: flex;
   justify-content: space-around;
 }
