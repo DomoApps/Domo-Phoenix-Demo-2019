@@ -163,7 +163,7 @@ function switchColorPalette() {
   updateChart(undefined, chartProperties);
 }
 
-// ADDED: Helper function for color palettes and variable for tracking selected palette
+// ADDED: Helper function for chart sizes and variable for tracking selected size
 var sizes = [
   { width: 650, height: 400 },
   { width: 450, height: 300 },
