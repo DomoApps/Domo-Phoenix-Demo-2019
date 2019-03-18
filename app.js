@@ -118,7 +118,9 @@ function resetChart(data, customOptions, chartType) {
   customOptions = Object.assign(
     (chartProperties = {
       colors: palettes[currentPalette],
-      transparentBackground: transparent
+      transparentBackground: transparent,
+      height: sizes[currentSize].height,
+      width: sizes[currentSize].width
     }),
     customOptions || {}
   );
@@ -133,7 +135,9 @@ function filterChart(priority) {
     wasCritical = false;
     var currentOptions = {
       colors: palettes[currentPalette],
-      transparentBackground: transparent
+      transparentBackground: transparent,
+      height: sizes[currentSize].height,
+      width: sizes[currentSize].width
     };
     var newData = getDataSliceForPriority(priority);
     var chartType = wasCritical ? DomoPhoenix.CHART_TYPE.PIE : undefined;
@@ -170,6 +174,23 @@ function switchColorPalette() {
   currentPalette %= palettes.length;
   chartProperties = { colors: palettes[currentPalette] };
   updateChart(undefined, chartProperties);
+}
+
+// Helper function for chart sizes and variable for tracking selected size
+var sizes = [
+  { width: 650, height: 400 },
+  { width: 450, height: 300 },
+  { width: 250, height: 200 }
+];
+var currentSize = 0;
+function switchChartSize() {
+  currentSize += 1;
+  currentSize %= sizes.length;
+  chartProperties = {
+    height: sizes[currentSize].height,
+    width: sizes[currentSize].width
+  };
+  resetChart(undefined, chartProperties);
 }
 
 // ADDED: Helper function for adding custom drill event handlers
