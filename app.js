@@ -173,9 +173,5 @@ var currentSize = 0;
 function switchChartSize() {
   currentSize += 1;
   currentSize %= sizes.length;
-  chartProperties = {
-    height: sizes[currentSize].height,
-    width: sizes[currentSize].width
-  };
-  resetChart(undefined, chartProperties);
+  theChart.resize(sizes[currentSize].width, sizes[currentSize].height);
 }
